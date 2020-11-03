@@ -6,21 +6,28 @@
 #define BLUE_LED 000,000,255
 
 // instantiate peripheral objects
-MeRGBLed led(PORT_7, 2);  // the internal connection 
+MeRGBLed led(PORT_7);  // the internal connection 
 // is handled by port 7, with default slot number 2
 
 void setup() {
   // nothing to be done here
+  Serial.begin(9600);
 }
 
 void loop() {
   // loops over the 3 colors, staying in each color for 1 second
-  led.setColorAt(0, RED_LED);
-  led.setColorAt(1, RED_LED);
+  Serial.println("red");
+  led.setColor(RED_LED);
+  led.show();
+  delay(1000);
 
-  led.setColorAt(0, GREEN_LED);
-  led.setColorAt(1, GREEN_LED);
+  Serial.println("green");
+  led.setColor(GREEN_LED);
+  led.show();
+  delay(1000);
 
-  led.setColorAt(0, BLUE_LED);
-  led.setColorAt(1, BLUE_LED);
+  Serial.println("blue");
+  led.setColor(BLUE_LED);
+  led.show();
+  delay(1000);
 }
