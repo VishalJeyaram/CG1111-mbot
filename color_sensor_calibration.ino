@@ -3,6 +3,9 @@
 // number of samples for color calibration
 #define NO_SAMPLES 100
 
+// delay to change color
+#define RGBWait 200
+
 // response time of light sensor in ms (need to check this value using response_time.ino)
 #define RESPONSE_TIME 10
 
@@ -36,7 +39,7 @@ void setup() {
     for (int j = 0; j < 3; j++){
       // NEED TO ADD CODE TO SET R, G OR B LED LIGHT
       //
-      //
+      // delay(RGBWait);
 
       // print color channel being used
       Serial.print("Using color channel ");
