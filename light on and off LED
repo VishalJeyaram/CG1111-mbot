@@ -1,4 +1,16 @@
-for (int i=0; i<=2; i+=1)
+void setup()
+{
+setBalance();
+}
+void setBalance()
+{
+    //Start setting white balance
+    Serial.println("Put White Sample For Calibration ...");     //Place white sample paper on top.
+    delay(5000);    //delay for five seconds for getting sample ready
+    led.setColor(​0​, ​0​, ​0​);     //Check LED is turned OFF during Calibration
+    //Scan the white sample.
+    //Light on red, green, blue LED one by one to set the maximum reading to the white array.
+    for (int i=0; i<=2; i+=1)
     {
         led.setColor(ledArray[i][​0​], ledArray[i][​1​], ledArray[i][​2​]);     //Light on red(ledArray[0]), green(ledArray[1]), blue(ledArray[2]) each time.
         led.show();
@@ -8,3 +20,30 @@ for (int i=0; i<=2; i+=1)
         led.show();
         delay(RGBWait);     //delay for response
     }
+    //Finish setting white balance
+    //Start setting Black balance
+    Serial.println("Put Black Sample For Calibration ...");     //Place black sample paper on top.
+    delay(5000);    //delay for five seconds for getting sample ready 
+    //Scan the black sample.
+    //Light on Red, green, blue LED one by one to set the minimum reading to the black array.
+    for (int i=0; i<=2; i+=1)
+    {
+        led.setColor(ledArray[i][​0​], ledArray[i][​1​], ledArray[i][​2​]);    //Light on red(ledArray[0]), green(ledArray[1]), blue(ledArray[2]) each time.
+        led.show();
+        delay(RGBWait);     //delay for response
+        blackArray[i] = getAvgReading(5);   //Scan 5 times to calculate and return the average of minimum RGB reading to the white array.
+        led.setColor(​0​,​0​,​0​);     //Turn off red(ledArray[0]), green(ledArray[1]), blue(ledArray[2]).
+        led.show();
+        delay(RGBWait);     //delay for response
+        //the differnce between the maximum and the minimum gives the range
+        greyDiff[i] = whiteArray[i] - blackArray[i];    //Calculate the difference between average maximum and minimum reading to return the range.
+    }
+    //Finish setting black balance
+    Serial.println("Complete");
+    delay(5000);    //delay another 5 seconds for getting ready colour objects
+    for (int i=0; i<=2; i+=1)
+    {
+        Serial.println(whiteArray[i]);
+        Serial.println(blackArray[i]);
+    }
+}
