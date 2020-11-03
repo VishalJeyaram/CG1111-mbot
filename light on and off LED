@@ -1,0 +1,10 @@
+for (int i=0; i<=2; i+=1)
+    {
+        led.setColor(ledArray[i][​0​], ledArray[i][​1​], ledArray[i][​2​]);     //Light on red(ledArray[0]), green(ledArray[1]), blue(ledArray[2]) each time.
+        led.show();
+        delay(RGBWait);     //delay for response
+        whiteArray[i] = getAvgReading(5);   //Scan 5 times to calculate and return the average of maximum RGB reading to the white array.
+        led.setColor(​0​,​0​,​0​);     //Turn off red(ledArray[0]), green(ledArray[1]), blue(ledArray[2]).
+        led.show();
+        delay(RGBWait);     //delay for response
+    }
