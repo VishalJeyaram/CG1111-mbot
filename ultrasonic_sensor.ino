@@ -6,14 +6,14 @@
 #include <MeMCore.h>
 
 // instantiate peripheral objects
-MeUltrasonic ultra(PORT_6)  // CHECK THAT THE ULTRASONIC SENSOR IS AT PORT 6
+MeUltrasonicSensor ultra(PORT_1);  // CHECK THAT THE ULTRASONIC SENSOR IS AT PORT 1
+
+// variable to contain integer output from ultrasonic sensor
+int distance;
 
 void setup() {
   // initialize serial communications at 9600 bps
   Serial.begin(9600);
-
-  // variable to contain integer output from ultrasonic sensor
-  int distance;     // IF THIS CAUSES AN ERROR, CUT THIS LINE TO LINE 5 (MAKE IT GLOBAL)
 }
 
 void loop() {
