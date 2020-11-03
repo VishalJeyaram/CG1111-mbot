@@ -137,29 +137,29 @@ int get_color_code(Color color) {
   }
 }
 
-Color get_colors(NO_SAMPLES){
+Color get_colors() {
   // takes NO_SAMPLES samples and returns the average for each channel
   Color color;
 
   // NEED TO ADD CODE TO SET RGB LED TO RED
   //
   //
-  color.red = get_single_color(NO_SAMPLES);
+  color.red = get_single_color();
 
   // NEED TO ADD CODE TO SET RGB LED TO GREEN
   //
   //
-  color.green = get_single_color(NO_SAMPLES);
+  color.green = get_single_color();
 
   // NEED TO ADD CODE TO SET RGB LED TO BLUE
   //
   //
-  color.blue = get_single_color(NO_SAMPLES);
+  color.blue = get_single_color();
   
   return color;
 }
 
-int get_single_color(NO_SAMPLES){
+int get_single_color() {
   // returns the average color value for single channel
   int sum = 0;
   
