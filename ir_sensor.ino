@@ -6,14 +6,14 @@
 #include <MeMCore.h>
 
 // instantiate peripheral objects
-MePort ir_sensor(PORT_2)  // CHECK THAT RJ25 IR SENSORS ARE AT PORT 2
+MePort ir_sensor(PORT_3);  // CHECK THAT RJ25 IR SENSORS ARE AT PORT 3
+
+// variables to contain integer output from ir sensors
+int s1, s2;
 
 void setup() {
   // initialize serial communications at 9600 bps
   Serial.begin(9600);
-
-  // variables to contain integer output from ir sensors
-  int s1, s2;     // IF THIS CAUSES AN ERROR, CUT THIS LINE TO LINE 5 (MAKE IT GLOBAL)
 }
 
 void loop() {
