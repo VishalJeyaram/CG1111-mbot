@@ -1,0 +1,143 @@
+#include <MeMCore.h>
+
+#define RGBWait 200   //Define time delay before the next RGB colour turns ON to allow LDR to stabilize in milliseconds 
+#define LDRWait 10   //Define time delay before taking another LDR readingin milliseconds
+
+MeLightSensor light_sensor(PORT_6);
+MeRGBLed led(PORT_3);
+
+//Note: Color code for reference
+//Red -> return 0
+//Green -> return 1
+//Yellow -> return 2
+//Purple -> return 3
+//Blue -> return 4 
+//White -> return 5
+//Black -> return 6
+
+// Define colour sensor LED pins
+int​ ledArray[​3​][​3​] = 
+{
+  {​255​, ​0​, ​0​},
+  {​0​, ​255​, ​0​},
+  {​0​, ​0​, ​255​}
+};
+
+
+int getAvgReading(int times)
+{
+  int reading;
+  int sum =0;
+  for(int i=0; i<times; i+=1){
+     reading = analogRead(LDR);
+     sum += reading;
+     delay(LDRWait);
+  }
+  return sum/times;
+}
+
+//Colour Calibration right before the evaluation starts
+void setBalance()
+{
+    //Start setting white balance
+    Serial.println("Put White Sample For Calibration ...");     //Place white sample paper on top.
+    delay(5000);    //delay for five seconds for getting sample ready
+    led.setColor(​0​, ​0​, ​0​);     //Check LED is turned OFF during Calibration
+    //Scan the white sample.
+    //Light on red, green, blue LED one by one to set the maximum reading to the white array.
+    for (int i=0; i<=2; i+=1)
+    {
+        led.setColor(ledArray[i][​0​], ledArray[i][​1​], ledArray[i][​2​]);     //Light on red(ledArray[0]), green(ledArray[1]), blue(ledArray[2]) each time.
+        led.show();
+        delay(RGBWait);     //delay for response
+        whiteArray[i] = getAvgReading(5);   //Scan 5 times to calculate and return the average of maximum RGB reading to the white array.
+        led.setColor(​0​,​0​,​0​);     //Turn off red(ledArray[0]), green(ledArray[1]), blue(ledArray[2]).
+        led.show();
+        delay(RGBWait);     //delay for response
+    }
+    //Finish setting white balance
+    //Start setting Black balance
+    Serial.println("Put Black Sample For Calibration ...");     //Place black sample paper on top.
+    delay(5000);    //delay for five seconds for getting sample ready 
+    //Scan the black sample.
+    //Light on Red, green, blue LED one by one to set the minimum reading to the black array.
+    for (int i=0; i<=2; i+=1)
+    {
+        led.setColor(ledArray[i][​0​], ledArray[i][​1​], ledArray[i][​2​]);    //Light on red(ledArray[0]), green(ledArray[1]), blue(ledArray[2]) each time.
+        led.show();
+        delay(RGBWait);     //delay for response
+        blackArray[i] = getAvgReading(5);   //Scan 5 times to calculate and return the average of minimum RGB reading to the white array.
+        led.setColor(​0​,​0​,​0​);     //Turn off red(ledArray[0]), green(ledArray[1]), blue(ledArray[2]).
+        led.show();
+        delay(RGBWait);     //delay for response
+        //the differnce between the maximum and the minimum gives the range
+        greyDiff[i] = whiteArray[i] - blackArray[i];    //Calculate the difference between average maximum and minimum reading to return the range.
+    }
+    //Finish setting black balance
+    Serial.println("Complete");
+    delay(5000);    //delay another 5 seconds for getting ready colour objects
+    for (int i=0; i<=2; i+=1)
+    {
+        Serial.println(whiteArray[i]);
+        Serial.println(blackArray[i]);
+    }
+}
+
+
+//Colour Sensing
+void​ readColour()
+{
+    Serial.println("Put Color Sample");     //Place color sample paper on top.
+    delay(5000);    //delay for five seconds for getting sample ready
+    led.setColor(​0​, ​0​, ​0​);      //Check LED is turned OFF
+    //Scan the color sample.
+    //Light on red, green, blue LED one by one to get readings to the color array.
+    for (int i = 0; i <= 2; i += 1)
+    {
+        led.setColor(ledArray[i][​0​], ledArray[i][​1​], ledArray[i][​2​]);    //Light on red(ledArray[0]), green(ledArray[1]), blue(ledArray[2]) each time.
+        led.show();
+        delay(RGBWait);     //delay for response
+        colorArray[i] = getAvgReading(5);   //Scan 100 times to calculate and return the average of maximum RGB reading to the white array.
+        colourArray[i] = (colourArray[i] - blackArray[i]) / (greyDiff[i]) * 255;    //Calculate current reflectivity, representing the colour.
+        led.setColor(​0​,​0​,​0​);     //Turn off red(ledArray[0]), green(ledArray[1]), blue(ledArray[2]).
+        led.show();
+        delay(RGBWait);     //delay for response
+        Serial.println(colourArray[i]);    //Print RGB values for the current colour
+    }
+}
+
+void setup()
+{
+  Serial.begin(9600);
+  led.setpin(​13​);   //two LED lights are connected together to D13 pin on board
+  led.setColor(​0​,​0​,​0​);     //Check all LED are turned OFF
+
+  int colorArray[7][3];
+  // iterate through the different colors
+  for (int i=0; i<7; i+=1)
+  {
+    Serial.println("Put Color Sample");     //Place color sample paper on top.
+    Serial.println(i);     //Print color code.
+    delay(5000);    //delay for five seconds for getting sample ready
+    led.setColor(​0​,​0​,​0​);     //Check LED is turned OFF
+    //Scan the color sample.
+    //Light on red, green, blue LED one by one to get readings to the color array.
+    for (int j=0; j<=2; j+=1)
+    {
+      led.setColor(ledArray[i][​0​], ledArray[i][​1​], ledArray[i][​2​]);    //Light on red(ledArray[0]), green(ledArray[1]), blue(ledArray[2]) each time.
+      led.show();
+      Serial.print(j);    // print LED index
+      delay(RGBWait);     //delay for response
+      colorArray[i][j] = getAvgReading(100);   //Scan 100 times to calculate and return the average of maximum RGB reading to the white array.
+      colourArray[i][j] = (colourArray[i] - blackArray[i]) / (greyDiff[i]) * 255;    //Calculate current reflectivity, representing the colour.
+      led.setColor(​0​,​0​,​0​);     //Turn off red(ledArray[0]), green(ledArray[1]), blue(ledArray[2]).
+      led.show();
+      delay(RGBWait);     //delay for response
+      Serial.println(colourArray[i][j]);    //Print RGB values for the current colour
+    }
+  //Finish calibration for one color sample
+  delay(5000);//delay for five seconds
+  }
+  Serial.println("Completed");
+  //Finish calibration for all color samples
+}
