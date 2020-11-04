@@ -56,8 +56,10 @@
 #define B_BLACK_UPPER 0
 #define B_BLACK_LOWER 0
 
-// response time of light sensor in ms 
-#define RESPONSE_TIME 10
+// macros to control rgb
+#define RED_LED 255,000,000
+#define GREEN_LED 000,255,000
+#define BLUE_LED 000,000,255
 
 // contains details for red, green and blue channels
 struct Color {
@@ -68,6 +70,7 @@ struct Color {
 
 // initialise peripheral objects
 MeLightSensor light_sensor(PORT_6);
+MeRGBLed led(PORT_7);  // the internal connection is handled by port 7, with default slot number 2
 
 /* COLOR CODE FOR REFERENCE DURING CALIBRATION
  * RED -> return 0
@@ -141,30 +144,30 @@ Color get_colors() {
   // takes NO_SAMPLES samples and returns the average for each channel
   Color color;
 
-  // NEED TO ADD CODE TO SET RGB LED TO RED
-  //
-  //
+  // set RGB LED to RED
+  led.setColor(RED_LED);
+  led.show();
   color.red = get_single_color();
 
-  // NEED TO ADD CODE TO SET RGB LED TO GREEN
-  //
-  //
+  // set RGB LED to GREEN
+  led.setColor(GREEN_LED);
+  led.show();
   color.green = get_single_color();
 
-  // NEED TO ADD CODE TO SET RGB LED TO BLUE
-  //
-  //
+  // set RGB LED to BLUE
+  led.setColor(BLUE_LED);
+  led.show();
   color.blue = get_single_color();
-  
   return color;
 }
 
 int get_single_color() {
   // returns the average color value for single channel
   int sum = 0;
+
+  delay(RESPONSE_TIME);
   
   for (int j = 0; j < NO_SAMPLES; j++){
-    delay(RESPONSE_TIME); // NEED TO CHECK IF THIS IS REALLY REQUIRED
     sum += light_sensor.read();
   }
   
