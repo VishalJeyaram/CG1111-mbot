@@ -57,7 +57,7 @@ void setup() {
       
       // iterate through the different samples
       for (int k = 0; k < NO_SAMPLES; k++){
-        colorArray[i][j][k] = get_sample();   // get average of 5 sensor readings
+        colorArray[i][k][j] = get_sample();   // get average of 5 sensor readings
 
 //        // print progress
 //        if (j%10 == 0){
@@ -76,18 +76,14 @@ void setup() {
 
   // prints results in the following format <r0> <g0> <b0> <r1> ... <r6> <g6> <b6> 
   // in comma seperated values form
-  for (int i = 0; i < 7; i++){
-    Serial.print("Results for color ");
-    Serial.println(i);
-    for (int j = 0; j < NO_SAMPLES; j++){
+  for (int i = 0; i < NO_SAMPLES; i++){
+    for (int j = 0; j < 7; j++){
       for (int k = 0; k < 3; k++){
-        Serial.print(colorArray[i][j][k]);
+        Serial.print(colorArray[j][i][k]);
         Serial.print(",");
       }
-      // print the next set of values in another row
-      Serial.println();
     }
-    Serial.println();
+    // print the next set of values in another row
     Serial.println();
   }
 }
