@@ -49,6 +49,17 @@ Color blackColor;
 Color whiteColor;
 
 void setup() {
+  init_light_sensor();
+}
+
+void loop() {
+  // print out color detected for debugging only
+  Serial.println(use_light_sensor());
+}
+
+void init_light_sensor() {
+  // initialises light sensor and does the required calibration
+  
   // initialize serial communication at 9600 bps
   Serial.begin(9600);
 
@@ -62,13 +73,6 @@ void setup() {
   blackColor = get_colors();
   Serial.println("Finished calibration");
 
-  // initialize start button
-  // press then release button to begin the run
-  pinMode(BUTTON, INPUT);
-
-  while (analogRead(BUTTON) > 500) {}
-  while (analogRead(BUTTON) < 500) {}
-  
   // prints out white and black values for calibration
   Serial.print("b_red\t");
   Serial.print(blackColor.red);
@@ -83,14 +87,15 @@ void setup() {
   Serial.print(whiteColor.green);
   Serial.print("\tw_blue\t");
   Serial.println(whiteColor.blue);
+
+  // press then release button to begin the run
+  pinMode(BUTTON, INPUT);
+
+  while (analogRead(BUTTON) > 500) {}
+  while (analogRead(BUTTON) < 500) {}
   
   // wait for button press to continue with the for loop
   Serial.println("Waiting for button press");
-}
-
-void loop() {
-  // print out color detected for debugging only
-  Serial.println(use_light_sensor());
 }
 
 int use_light_sensor() {
