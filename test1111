@@ -1,0 +1,111 @@
+#include <MeMCore.h>
+
+// number of color sample measurements to take in each channel
+#define NO_SAMPLES 5
+
+// response time for taking measurement in ms (NEED TO CHECK IF REQUIRED)
+#define RESPONSE_TIME 10
+
+// set up threshold values the colors
+#define R_YELLOW_LOWER 90
+#define R_RED_LOWER 65
+#define G_BLUE_LOWER 50
+#define R_PURPLE_LOWER 35
+
+// contains details for red, green and blue channels
+struct Color {
+  int red;
+  int green;
+  int blue;
+};
+
+// initialise peripheral objects
+MeLightSensor light_sensor(PORT_6);
+MeRGBLed led(PORT_7);  // the internal connection is handled by port 7, with default slot number 2
+
+/* COLOR CODE FOR REFERENCE DURING CALIBRATION
+ * RED -> return 0
+   GREEN -> return 1
+   YELLOW -> return 2
+   PURPLE -> return 3
+   BLUE -> return 4 
+   WHITE -> return 5
+   BLACK -> return 6
+   OTHERS -> return -1 */
+
+void setup() {
+  // initialize serial communication at 9600 bps
+  Serial.begin(9600);
+}
+
+void loop() {
+  // take color measurement
+  
+}
+
+int get_single_color() {
+  // returns the average color value for single channel
+  int sum = 0;
+
+  delay(RESPONSE_TIME);
+  
+  for (int j = 0; j < NO_SAMPLES; j++){
+    sum += light_sensor.read();
+  }
+  
+  return sum / NO_SAMPLES;
+}
+
+Color get_colors() {
+  // takes NO_SAMPLES samples and returns the average for each channel
+  Color color;
+
+  // set RGB LED to RED
+  led.setColor(RED_LED);
+  led.show();
+  color.red = get_single_color();
+
+  // set RGB LED to GREEN
+  led.setColor(GREEN_LED);
+  led.show();
+  color.green = get_single_color();
+
+  // set RGB LED to BLUE
+  led.setColor(BLUE_LED);
+  led.show();
+  color.blue = get_single_color();
+  return color;
+}
+
+int get_color_code(Color color) {
+  // returns the corresponding color code
+  
+  int red = color.red;
+  int green = color.green;
+  int blue = color.blue;
+
+  if (red > R_YELLOW_LOWER)
+  {
+    // yellow
+    return 2;
+  } else if (red < R_RED_LOWER)
+  {
+    // red
+    return 0;
+  } else if (blue > R_BLUE_LOWER)
+  {
+    // blue
+    return 4;
+  } else if (red > R_PURPLE_LOWER)
+  {
+    // purple
+    return 3;
+  } else if (red < R_BLACK_UPPER)
+  {
+    // black
+    return 6;
+  } else {
+    // green
+    return 1;
+  }
+}
