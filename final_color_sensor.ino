@@ -1,12 +1,13 @@
 #include <MeMCore.h>
+#include <Arduino.h>
 
 // number of color sample measurements to take in each channel
 #define NO_SAMPLES 5
 
 #define BUTTON A7
 
-// response time for taking measurement in ms (NEED TO CHECK IF REQUIRED)
-#define RESPONSE_TIME 1000
+// response time for taking measurement in ms
+#define RESPONSE_TIME 100
 
 // set up threshold values the colors
 #define R_YELLOW_LOWER 75
@@ -16,10 +17,11 @@
 #define R_BLACK_UPPER 10
 
 
-// macros to control rgb
+// macros to control RGB LED
 #define RED_LED 255,000,000
 #define GREEN_LED 000,255,000
 #define BLUE_LED 000,000,255
+#define OFF_LED 000,000,000
 
 // contains details for red, green and blue channels
 struct Color {
@@ -30,7 +32,7 @@ struct Color {
 
 // initialise peripheral objects
 MeLightSensor light_sensor(PORT_6);
-MeRGBLed led(PORT_7);  // the internal connection is handled by port 7, with default slot number 2
+MeRGBLed led(PORT_7); 
 
 /* COLOR CODE FOR REFERENCE DURING CALIBRATION
  * RED -> return 0
@@ -43,8 +45,8 @@ MeRGBLed led(PORT_7);  // the internal connection is handled by port 7, with def
    OTHERS -> return -1 */
 
 // colors for calibration
-Color black;
-Color white;
+Color blackColor;
+Color whiteColor;
 
 void setup() {
   // initialize serial communication at 9600 bps
@@ -53,11 +55,11 @@ void setup() {
   // perform color calibration first
   Serial.println("Place white sample for calibration...");
   delay(5000);
-  white = get_colors();
+  whiteColor = get_colors();
 
   Serial.println("Place black sample for calibration...");
   delay(5000);
-  black = get_colors();
+  blackColor = get_colors();
   Serial.println("Finished calibration");
 
   // initialize start button
@@ -66,34 +68,68 @@ void setup() {
 
   while (analogRead(BUTTON) > 500) {}
   while (analogRead(BUTTON) < 500) {}
+  
+  // prints out white and black values for calibration
+  Serial.print("b_red\t");
+  Serial.print(blackColor.red);
+  Serial.print("\tb_green\t");
+  Serial.print(blackColor.green);
+  Serial.print("\tb_blue\t");
+  Serial.println(blackColor.blue);
+  
+  Serial.print("w_red\t");
+  Serial.print(whiteColor.red);
+  Serial.print("\tw_green\t");
+  Serial.print(whiteColor.green);
+  Serial.print("\tw_blue\t");
+  Serial.println(whiteColor.blue);
+  
+  // wait for button press to continue with the for loop
   Serial.println("Waiting for button press");
 }
 
 void loop() {
+  // print out color detected for debugging only
+  Serial.println(use_light_sensor());
+}
+
+int use_light_sensor() {
+  /* returns the color code based on measurement from the color sensor */
+  
+  // for some strange reason, we need a delay so the results are stable
   delay(5000);
+  
   // take color measurement
   Color new_color = get_colors();
 
-  // do color balancing
-  new_color.red = map(new_color.red, black.red, white.red, 0, 100);
-  new_color.green = map(new_color.green, black.green, white.green, 0, 100);
-  new_color.blue = map(new_color.blue, black.blue, white.blue, 0, 100);
-
-  // print out color detected
-  Serial.println(get_color_code(new_color));
+  // do color balancing. first constrain the new_color measurements so they don't
+  // go out of bounds, then scale them
+  new_color.red = constrain(new_color.red, blackColor.red, whiteColor.red);
+  new_color.green = constrain(new_color.green, blackColor.green, whiteColor.green);
+  new_color.blue = constrain(new_color.blue, blackColor.blue, whiteColor.blue);
+  
+  new_color.red = map(new_color.red, blackColor.red, whiteColor.red, 0, 100);
+  new_color.green = map(new_color.green, blackColor.green, whiteColor.green, 0, 100);
+  new_color.blue = map(new_color.blue, blackColor.blue, whiteColor.blue, 0, 100);
+  
+  // return the corresponding code for that color
+  return get_color_code(new_color);
 }
 
 int get_color_code(Color color) {
-  // returns the corresponding color code
+  /* returns the corresponding color code */ 
   
+  // variables used just to simplify the no of times I need to type color.red, color.green & color.blue
   int red = color.red;
   int green = color.green;
   int blue = color.blue;
-  Serial.print(red);
-  Serial.print("\t");
-  Serial.print(green);
-  Serial.print("\t");
-  Serial.println(blue);
+  
+//   // below used for debugging only
+//   Serial.print(red);
+//   Serial.print("\t");
+//   Serial.print(green);
+//   Serial.print("\t");
+//   Serial.println(blue);
 
   if (red > R_YELLOW_LOWER)
   {
@@ -146,6 +182,10 @@ Color get_colors() {
   led.show();
   color.blue = get_single_color();
   return color;
+  
+  // turn off RGB LED
+  led.setColor(OFF_LED);
+  led.show();
 }
 
 int get_single_color() {
