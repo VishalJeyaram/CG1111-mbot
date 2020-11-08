@@ -2,62 +2,19 @@
 #include <Arduino.h>
 
 // number of color sample measurements to take in each channel
-#define NO_SAMPLES 10
+#define NO_SAMPLES 50
 
 #define BUTTON A7
 
 // response time for taking measurement in ms
-#define RESPONSE_TIME 100
+#define RESPONSE_TIME 200
 
-// set up threshold values for the colors. ENSURE THESE HAVE BEEN UPDATED!
- #define R_RED_UPPER 0
- #define R_RED_LOWER 0
- #define G_RED_UPPER 0
- #define G_RED_LOWER 0
- #define B_RED_UPPER 0
- #define B_RED_LOWER 0
-
- #define R_GREEN_UPPER 0
- #define R_GREEN_LOWER 0
- #define G_GREEN_UPPER 0
- #define G_GREEN_LOWER 0
- #define B_GREEN_UPPER 0
- #define B_GREEN_LOWER 0
-
- #define R_YELLOW_UPPER 0
- #define R_YELLOW_LOWER 0
- #define G_YELLOW_UPPER 0
- #define G_YELLOW_LOWER 0
- #define B_YELLOW_UPPER 0
- #define B_YELLOW_LOWER 0
-
- #define R_PURPLE_UPPER 0
- #define R_PURPLE_LOWER 0
- #define G_PURPLE_UPPER 0
- #define G_PURPLE_LOWER 0
- #define B_PURPLE_UPPER 0
- #define B_PURPLE_LOWER 0
-
- #define R_BLUE_UPPER 0
- #define R_BLUE_LOWER 0
- #define G_BLUE_UPPER 0
- #define G_BLUE_LOWER 0
- #define B_BLUE_UPPER 0
- #define B_BLUE_LOWER 0
-
- #define R_WHITE_UPPER 0
- #define R_WHITE_LOWER 0
- #define G_WHITE_UPPER 0
- #define G_WHITE_LOWER 0
- #define B_WHITE_UPPER 0
- #define B_WHITE_LOWER 0
-
- #define R_BLACK_UPPER 0
- #define R_BLACK_LOWER 0
- #define G_BLACK_UPPER 0
- #define G_BLACK_LOWER 0
- #define B_BLACK_UPPER 0
- #define B_BLACK_LOWER 0
+// set up threshold values the colors
+ #define R_YELLOW_LOWER 75
+ #define R_RED_LOWER 55
+ #define B_BLUE_LOWER 65
+ #define R_PURPLE_LOWER 35
+ #define R_BLACK_UPPER 10
 
 // values to control RGB LED
 #define RED_LED 255,000,000
@@ -73,8 +30,8 @@ struct Color {
 };
 
 // used for calibration. ENSURE THESE HAVE BEEN UPDATED!
-Color black = {0, 0, 0};
-Color white = {0, 0, 0};
+Color black = {149, 98, 107};
+Color white = {227, 151, 165};
 
 // initialise peripheral objects
 MeLightSensor light_sensor(PORT_6);
@@ -132,53 +89,51 @@ int use_light_sensor() {
   return get_color_code(new_color);
 }
 
-int get_color_code(Color color) {
+
+ int get_color_code(Color color) {
    // returns the corresponding color code
 
    int red = color.red;
    int green = color.green;
    int blue = color.blue;
+   Serial.print(red);
+   Serial.print("\t");
+   Serial.print(green);
+   Serial.print("\t");
+   Serial.println(blue);
 
-   if (red < R_RED_UPPER && red > R_RED_LOWER && 
-       green < G_RED_UPPER && green > G_RED_LOWER && 
-       blue < B_RED_UPPER && blue > B_RED_LOWER){
-     // RED
-     return 0;
-   } else if (red < R_GREEN_UPPER && red > R_GREEN_LOWER && 
-              green < G_GREEN_UPPER && green > G_GREEN_LOWER && 
-              blue < B_GREEN_UPPER && blue > B_GREEN_LOWER){
-     // GREEN
-     return 1;
-   } else if (red < R_YELLOW_UPPER && red > R_YELLOW_LOWER && 
-              green < G_YELLOW_UPPER && green > G_YELLOW_LOWER && 
-              blue < B_YELLOW_UPPER && blue > B_YELLOW_LOWER){
-     // YELLOW
+   if (red > R_YELLOW_LOWER)
+   {
+     // yellow
+     Serial.println("yellow");
      return 2;
-   } else if (red < R_PURPLE_UPPER && red > R_PURPLE_LOWER && 
-              green < G_PURPLE_UPPER && green > G_PURPLE_LOWER && 
-              blue < B_PURPLE_UPPER && blue > B_PURPLE_LOWER){
-     // PURPLE
-     return 3;
-   } else if (red < R_BLUE_UPPER && red > R_BLUE_LOWER && 
-              green < G_BLUE_UPPER && green > G_BLUE_LOWER && 
-              blue < B_BLUE_UPPER && blue > B_BLUE_LOWER){
-     // BLUE
+   } else if (red > R_RED_LOWER)
+   {
+     // red
+     Serial.println("red");
+     return 0;
+   } else if (blue > B_BLUE_LOWER)
+   {
+     // blue
+     Serial.println("blue");
      return 4;
-   } else if (red < R_WHITE_UPPER && red > R_WHITE_LOWER && 
-              green < G_WHITE_UPPER && green > G_WHITE_LOWER && 
-              blue < B_WHITE_UPPER && blue > B_WHITE_LOWER){
-     // WHITE
-     return 5;
-   } else if (red < R_BLACK_UPPER && red > R_BLACK_LOWER && 
-              green < G_BLACK_UPPER && green > G_BLACK_LOWER && 
-              blue < B_BLACK_UPPER && blue > B_BLACK_LOWER){
-     // BLACK
+   } else if (red > R_PURPLE_LOWER)
+   {
+     // purple
+     Serial.println("purple");
+     return 3;
+   } else if (red < R_BLACK_UPPER)
+   {
+     // black
+     Serial.println("black");
      return 6;
    } else {
-     // UNKNOWN COLOR: FAILED TO DETECT ANY OF THE ABOVE COLORS
-     return -1;
+     // green
+     Serial.println("green");
+     return 1;
    }
  }
+
 
 Color get_colors() {
   // takes NO_SAMPLES samples and returns the average for each channel
