@@ -40,13 +40,13 @@ void setup() {
   // perform color calibration first
   Serial.println("Place white sample for calibration...");
   delay(5000);
+  Color white = get_colors();
   Serial.print(white.red);
   Serial.print("\t");
   Serial.print(white.green);
   Serial.print("\t");
   Serial.println(white.blue);
   Serial.println();
-  Color white = get_colors();
 
   Serial.println("Place black sample for calibration...");
   delay(5000);
