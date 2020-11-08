@@ -2,22 +2,64 @@
 #include <Arduino.h>
 
 // number of color sample measurements to take in each channel
-#define NO_SAMPLES 5
+#define NO_SAMPLES 10
 
 #define BUTTON A7
 
 // response time for taking measurement in ms
 #define RESPONSE_TIME 100
 
-// set up threshold values the colors
-#define R_YELLOW_LOWER 75
-#define R_RED_LOWER 55
-#define B_BLUE_LOWER 65
-#define R_PURPLE_LOWER 35
-#define R_BLACK_UPPER 10
+// set up threshold values for the colors. ENSURE THESE HAVE BEEN UPDATED!
+ #define R_RED_UPPER 0
+ #define R_RED_LOWER 0
+ #define G_RED_UPPER 0
+ #define G_RED_LOWER 0
+ #define B_RED_UPPER 0
+ #define B_RED_LOWER 0
 
+ #define R_GREEN_UPPER 0
+ #define R_GREEN_LOWER 0
+ #define G_GREEN_UPPER 0
+ #define G_GREEN_LOWER 0
+ #define B_GREEN_UPPER 0
+ #define B_GREEN_LOWER 0
 
-// macros to control RGB LED
+ #define R_YELLOW_UPPER 0
+ #define R_YELLOW_LOWER 0
+ #define G_YELLOW_UPPER 0
+ #define G_YELLOW_LOWER 0
+ #define B_YELLOW_UPPER 0
+ #define B_YELLOW_LOWER 0
+
+ #define R_PURPLE_UPPER 0
+ #define R_PURPLE_LOWER 0
+ #define G_PURPLE_UPPER 0
+ #define G_PURPLE_LOWER 0
+ #define B_PURPLE_UPPER 0
+ #define B_PURPLE_LOWER 0
+
+ #define R_BLUE_UPPER 0
+ #define R_BLUE_LOWER 0
+ #define G_BLUE_UPPER 0
+ #define G_BLUE_LOWER 0
+ #define B_BLUE_UPPER 0
+ #define B_BLUE_LOWER 0
+
+ #define R_WHITE_UPPER 0
+ #define R_WHITE_LOWER 0
+ #define G_WHITE_UPPER 0
+ #define G_WHITE_LOWER 0
+ #define B_WHITE_UPPER 0
+ #define B_WHITE_LOWER 0
+
+ #define R_BLACK_UPPER 0
+ #define R_BLACK_LOWER 0
+ #define G_BLACK_UPPER 0
+ #define G_BLACK_LOWER 0
+ #define B_BLACK_UPPER 0
+ #define B_BLACK_LOWER 0
+
+// values to control RGB LED
 #define RED_LED 255,000,000
 #define GREEN_LED 000,255,000
 #define BLUE_LED 000,000,255
@@ -30,9 +72,13 @@ struct Color {
   int blue;
 };
 
+// used for calibration. ENSURE THESE HAVE BEEN UPDATED!
+Color black = {0, 0, 0};
+Color white = {0, 0, 0};
+
 // initialise peripheral objects
 MeLightSensor light_sensor(PORT_6);
-MeRGBLed led(PORT_7); 
+MeRGBLed led(PORT_7);  // the internal connection is handled by port 7, with default slot number 2
 
 /* COLOR CODE FOR REFERENCE DURING CALIBRATION
  * RED -> return 0
@@ -45,49 +91,12 @@ MeRGBLed led(PORT_7);
    OTHERS -> return -1 */
 
 // colors for calibration
-Color blackColor;
-Color whiteColor;
 
 void setup() {
-  init_light_sensor();
-}
-
-void loop() {
-  // print out color detected for debugging only
-  Serial.println(use_light_sensor());
-}
-
-void init_light_sensor() {
-  // initialises light sensor and does the required calibration
-  
   // initialize serial communication at 9600 bps
   Serial.begin(9600);
 
-  // perform color calibration first
-  Serial.println("Place white sample for calibration...");
-  delay(5000);
-  whiteColor = get_colors();
-
-  Serial.println("Place black sample for calibration...");
-  delay(5000);
-  blackColor = get_colors();
-  Serial.println("Finished calibration");
-
-  // prints out white and black values for calibration
-  Serial.print("b_red\t");
-  Serial.print(blackColor.red);
-  Serial.print("\tb_green\t");
-  Serial.print(blackColor.green);
-  Serial.print("\tb_blue\t");
-  Serial.println(blackColor.blue);
-  
-  Serial.print("w_red\t");
-  Serial.print(whiteColor.red);
-  Serial.print("\tw_green\t");
-  Serial.print(whiteColor.green);
-  Serial.print("\tw_blue\t");
-  Serial.println(whiteColor.blue);
-
+  // initialize start button
   // press then release button to begin the run
   pinMode(BUTTON, INPUT);
 
@@ -98,75 +107,78 @@ void init_light_sensor() {
   Serial.println("Waiting for button press");
 }
 
+void loop() {
+  // print out color detected for debugging only
+  Serial.println(use_light_sensor());
+}
+
 int use_light_sensor() {
   /* returns the color code based on measurement from the color sensor */
-  
-  // for some strange reason, we need a delay so the results are stable
-  delay(5000);
   
   // take color measurement
   Color new_color = get_colors();
 
   // do color balancing. first constrain the new_color measurements so they don't
   // go out of bounds, then scale them
-  new_color.red = constrain(new_color.red, blackColor.red, whiteColor.red);
-  new_color.green = constrain(new_color.green, blackColor.green, whiteColor.green);
-  new_color.blue = constrain(new_color.blue, blackColor.blue, whiteColor.blue);
+  new_color.red = constrain(new_color.red, black.red, white.red);
+  new_color.green = constrain(new_color.green, black.green, white.green);
+  new_color.blue = constrain(new_color.blue, black.blue, white.blue);
   
-  new_color.red = map(new_color.red, blackColor.red, whiteColor.red, 0, 100);
-  new_color.green = map(new_color.green, blackColor.green, whiteColor.green, 0, 100);
-  new_color.blue = map(new_color.blue, blackColor.blue, whiteColor.blue, 0, 100);
+  new_color.red = map(new_color.red, black.red, white.red, 0, 100);
+  new_color.green = map(new_color.green, black.green, white.green, 0, 100);
+  new_color.blue = map(new_color.blue, black.blue, white.blue, 0, 100);
   
   // return the corresponding code for that color
   return get_color_code(new_color);
 }
 
 int get_color_code(Color color) {
-  /* returns the corresponding color code */ 
-  
-  // variables used just to simplify the no of times I need to type color.red, color.green & color.blue
-  int red = color.red;
-  int green = color.green;
-  int blue = color.blue;
-  
-//   // below used for debugging only
-//   Serial.print(red);
-//   Serial.print("\t");
-//   Serial.print(green);
-//   Serial.print("\t");
-//   Serial.println(blue);
+   // returns the corresponding color code
 
-  if (red > R_YELLOW_LOWER)
-  {
-    // yellow
-    Serial.println("yellow");
-    return 2;
-  } else if (red > R_RED_LOWER)
-  {
-    // red
-    Serial.println("red");
-    return 0;
-  } else if (blue > B_BLUE_LOWER)
-  {
-    // blue
-    Serial.println("blue");
-    return 4;
-  } else if (red > R_PURPLE_LOWER)
-  {
-    // purple
-    Serial.println("purple");
-    return 3;
-  } else if (red < R_BLACK_UPPER)
-  {
-    // black
-    Serial.println("black");
-    return 6;
-  } else {
-    // green
-    Serial.println("green");
-    return 1;
-  }
-}
+   int red = color.red;
+   int green = color.green;
+   int blue = color.blue;
+
+   if (red < R_RED_UPPER && red > R_RED_LOWER && 
+       green < G_RED_UPPER && green > G_RED_LOWER && 
+       blue < B_RED_UPPER && blue > B_RED_LOWER){
+     // RED
+     return 0;
+   } else if (red < R_GREEN_UPPER && red > R_GREEN_LOWER && 
+              green < G_GREEN_UPPER && green > G_GREEN_LOWER && 
+              blue < B_GREEN_UPPER && blue > B_GREEN_LOWER){
+     // GREEN
+     return 1;
+   } else if (red < R_YELLOW_UPPER && red > R_YELLOW_LOWER && 
+              green < G_YELLOW_UPPER && green > G_YELLOW_LOWER && 
+              blue < B_YELLOW_UPPER && blue > B_YELLOW_LOWER){
+     // YELLOW
+     return 2;
+   } else if (red < R_PURPLE_UPPER && red > R_PURPLE_LOWER && 
+              green < G_PURPLE_UPPER && green > G_PURPLE_LOWER && 
+              blue < B_PURPLE_UPPER && blue > B_PURPLE_LOWER){
+     // PURPLE
+     return 3;
+   } else if (red < R_BLUE_UPPER && red > R_BLUE_LOWER && 
+              green < G_BLUE_UPPER && green > G_BLUE_LOWER && 
+              blue < B_BLUE_UPPER && blue > B_BLUE_LOWER){
+     // BLUE
+     return 4;
+   } else if (red < R_WHITE_UPPER && red > R_WHITE_LOWER && 
+              green < G_WHITE_UPPER && green > G_WHITE_LOWER && 
+              blue < B_WHITE_UPPER && blue > B_WHITE_LOWER){
+     // WHITE
+     return 5;
+   } else if (red < R_BLACK_UPPER && red > R_BLACK_LOWER && 
+              green < G_BLACK_UPPER && green > G_BLACK_LOWER && 
+              blue < B_BLACK_UPPER && blue > B_BLACK_LOWER){
+     // BLACK
+     return 6;
+   } else {
+     // UNKNOWN COLOR: FAILED TO DETECT ANY OF THE ABOVE COLORS
+     return -1;
+   }
+ }
 
 Color get_colors() {
   // takes NO_SAMPLES samples and returns the average for each channel
@@ -186,11 +198,12 @@ Color get_colors() {
   led.setColor(BLUE_LED);
   led.show();
   color.blue = get_single_color();
-  return color;
   
   // turn off RGB LED
   led.setColor(OFF_LED);
   led.show();
+
+  return color;
 }
 
 int get_single_color() {
